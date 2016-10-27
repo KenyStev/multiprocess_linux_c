@@ -4,18 +4,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-char* itoa(int val, int base){
-	
-	static char buf[32] = {0};
-	
-	int i = 30;
-	
-	for(; val && i ; --i, val /= base)
-	
-		buf[i] = "0123456789abcdef"[val % base];
-	
-	return &buf[i+1];
-	
+int compare_function(const void *a,const void *b) {
+	int *x = (int *) a;
+	int *y = (int *) b;
+	return *x - *y;
 }
 
 int  parse(char *line, char **argU)
@@ -60,13 +52,6 @@ int call_children(int slides, int cant_nums, char **argU[64], int *status, int *
 {
 	int count_process = cant_nums/slides;
 	pid_t all_pids[count_process+1];
-	// int returned_numbers[count_process];
-
-	// if(cant_nums==3)
-	// {
-	// 	printf("Num segundo: %d\n", cant_nums);
-	// 	exit(0);
-	// }
 
 	for (int i = 0; i < count_process; ++i)
 	{
@@ -102,35 +87,10 @@ int call_children(int slides, int cant_nums, char **argU[64], int *status, int *
 	{
 		wait(status);
 		returned_numbers[i] = WEXITSTATUS(*status);
-		printf("pid: %d num: %d\n",all_pids[i], *returned_numbers);
-		// returned_numbers++;
+		printf("pid: %d num: %d\n",all_pids[i], returned_numbers[i]);
 	}
-
-	// *returned_numbers_arr = returned_numbers;
 
 	return count_process;
-}
-
-void update_next_args(int get_nums, char **argU, int *returned_numbers)
-{
-	*argU = "./child_sort";
-	// printf("Word: %s\n", *argU);
-	*argU++;
-	for (int i = 0; i < get_nums; ++i)
-	{
-		// char new_value[20];
-		 // itoa(returned_numbers[i], *argU, 10);
-		// *argU[i] = new_value;
-
-		*argU = itoa(returned_numbers[i],10);
-		// printf("probando num: %d\n",returned_numbers[0]);
-		// printf("probando num: %d\n",returned_numbers[1]);
-		// printf("probando num: %s\n",*argU);
-		// exit(0);
-		// *argU[i] = new_value;
-		*argU++;
-	}
-	*argU = '\0';
 }
 
 int  main(int argc, char *argv[])
@@ -158,12 +118,10 @@ int  main(int argc, char *argv[])
 
 		int get_nums = cant_nums/slides + 1;
 		int returned_numbers[get_nums];
-		do{
-			get_nums = call_children(slides, cant_nums, &argU, &status, &returned_numbers);
-			update_next_args(get_nums, &argU, &returned_numbers);
-			cant_nums = get_nums + 1;
-			if(get_nums==1)
-				printf("Max Number: %d\n", returned_numbers[0]);
-		}while(get_nums>1);
+		
+		get_nums = call_children(slides, cant_nums, &argU, &status, &returned_numbers);
+		qsort (returned_numbers, get_nums, sizeof(int), compare_function);
+		
+		printf("Max Number: %d\n", returned_numbers[get_nums-1]);
 	}
 }
