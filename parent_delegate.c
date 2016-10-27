@@ -65,7 +65,6 @@ int  main(int argc, char *argv[])
 			cant_nums = parse(numbers, argU);
 
 		int count_process = cant_nums/slides;
-		//count_process += (count_process*slides < cant_nums)?1:0;
 		pid_t all_pids[count_process];
 		int returned_numbers[count_process];
 		//printf("Size: %d\n",count_process);
@@ -82,12 +81,25 @@ int  main(int argc, char *argv[])
 				printf("%d: %s\n",k, slided[k]);
 			}
 			slided[slides+1] = '\0';
-			// memcpy(slided[1], &argU[1], slides*sizeof(char));
-			// printf("%s\n", slided);
 			all_pids[i] = execute(slided);           /* otherwise, execute the command */
 		}
 
-		//pid_t pid = execute(argU);
+		int remainders = cant_nums - count_process*slides - 1;
+		if(remainders>0)
+		{
+			char *slided[slides+2];
+			slided[0] = argU[0];
+			printf("0: %s\n", slided[0]);
+			for (int i = cant_nums - remainders, k=1; i < cant_nums; ++i,k++)
+			{
+				slided[k] = argU[i];
+				printf("%d: %s\n",k, slided[k]);
+			}
+			slided[slides+1] = '\0';
+			all_pids[count_process] = execute(slided);           /* otherwise, execute the command */
+			count_process++;
+		}
+
 		for (int i = 0; i < count_process; ++i)
 		{
 			wait(&status);
